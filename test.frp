@@ -1,14 +1,3 @@
-load
-	stdlib.frp
-
-let
-	a
-	5
-
-	b
-	7
-
 print
-	+
-		a
-		b
+	Hello, world!
+	.n
