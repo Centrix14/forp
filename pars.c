@@ -5,6 +5,7 @@
 #include "tl2/list.h"
 #include "pars.h"
 #include "token.h"
+#include "lib.h"
 
 int main(int argc, char *argv[]) {
 	list prog = {NULL, NULL, NULL};
@@ -48,8 +49,11 @@ char *pl_get_token(char *str) {
 
 void pl_exec(list *node) {
 	// show old tree
-	tl_crawl_list(node, tl_show);
-	puts(""); // just for new line
+	//tl_crawl_list(node, tl_show);
+	//puts(""); // just for new line
+
+	// run list
+	tl_crawl_list(node, ll_exec);
 
 	// free old tree
 	tl_crawl_list(node, tl_free_token);
