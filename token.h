@@ -9,9 +9,12 @@ typedef struct {
 } token;
 
 void tl_add_token(list *prog, char *tok, int index);
-void tl_free_token(list *prog);
 void tl_show(list *prog);
-void tl_crawl_list(list *prog, void (*func)(list*));
+
+void tl_free_token(list *prog);
 void tl_free_list(list *prog);
+
+void tl_crawl_list(list *prog, void (*func)(list*));
+void tl_crawl_list_reverse(list *prog, void (*func)(list*));
 
 #endif
