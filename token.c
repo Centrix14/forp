@@ -75,3 +75,19 @@ void tl_free_list(list *prog) {
 		node = next;
 	}
 }
+
+void tl_crawl_list_reverse(list *prog, void (*func)(list*)) {
+	list *last = NULL, *node = NULL, *prev = NULL;
+
+	last = list_get_last(prog);
+
+	node = last;
+	while (node) {
+		prev = node->prev;
+
+		if (node->data)
+			(*func)(node);
+
+		node = prev;
+	}
+}
