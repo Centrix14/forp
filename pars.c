@@ -9,15 +9,21 @@
 
 int main(int argc, char *argv[]) {
 	list prog = {NULL, NULL, NULL};
+	FILE *stream = NULL;
 
-	if (argc < 2) {
-		printf("Usage: %s <filename>\n", argv[0]);
+	if (argc >= 2) {
+		stream = fopen(argv[1], "r");
 
-		return 0;
+		// pars file
+		pl_pars_stream(&prog, stream);
+
+		// close
+		fclose(stream);
 	}
-
-	// pars file
-	pl_pars_file(&prog, argv[1]);
+	else {
+		pl_print_welcome();
+		pl_pars_stream(&prog, stdin);
+	}
 
 	// free list
 	tl_crawl_list(&prog, tl_free_token);
@@ -53,7 +59,7 @@ void pl_exec(list *node) {
 	//puts(""); // just for new line
 
 	// run list
-	tl_crawl_list(node, ll_exec);
+	tl_crawl_list_reverse(node, ll_exec);
 
 	// free old tree
 	tl_crawl_list(node, tl_free_token);
@@ -71,8 +77,7 @@ void pl_pars_line(list *tree, char *line) {
 	tl_add_token(tree, tok, indx);
 }
 
-void pl_pars_file(list *tree, char *file_name) {
-	FILE *file = fopen(file_name, "r");
+void pl_pars_stream(list *tree, FILE *file) {
 	char line[256] = "";
 
 	if (!file) {
@@ -81,15 +86,32 @@ void pl_pars_file(list *tree, char *file_name) {
 		exit(0);
 	}
 
+	// command line welcome
+	pl_prompt(file);
+
 	fgets(line, 256, file);
 	while (!feof(file)) {
-		if ((strlen(line) - 1) > 0) { // + \n
+		if (!strcmp(line, "exit\n"))
+			exit(0);
+		else if ((strlen(line) - 1) > 0) { // + \n
 			pl_pars_line(tree, line);
 		}
+
+		// command line welcome
+		pl_prompt(file);
 
 		fgets(line, 256, file);
 	}
 	pl_exec(tree);
+}
 
-	fclose(file);
+void pl_print_welcome() {
+	printf("Welcome to FORP interactive interpreter!\n"\
+		   "Use `;` to perform the previous operation\n"\
+		   "Use Ctrl-C or `exit` to exit\nEnjoy!\n\n");
+}
+
+void pl_prompt(FILE *stream) {
+	if (stream == stdin)
+		printf("| ");
 }
