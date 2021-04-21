@@ -5,6 +5,7 @@
 #include "tl2/list.h"
 #include "token.h"
 #include "lib.h"
+#include "var.h"
 
 void ll_exec(list *node) {
 	token *tk = NULL;
@@ -22,7 +23,7 @@ void ll_exec(list *node) {
 }
 
 int ll_is_std(char *name) {
-	char *names[] = {"print", "help", ";", "+", "-", "*", "/", NULL};
+	char *names[] = {"print", "help", ";", "+", "-", "*", "/", "let", NULL};
 	int i = 0;
 
 	for (; names[i]; i++)
@@ -33,7 +34,7 @@ int ll_is_std(char *name) {
 
 void ll_run_std(int code, list *node) {
 	void (*std[])(list*) = {ll_cb_print, ll_cb_help, ll_cb_nil, ll_cb_sum, ll_cb_sub, \
-	ll_cb_mul, ll_cb_div};
+	ll_cb_mul, ll_cb_div, ll_cb_let};
 
 	(*std[code])(node);
 }
@@ -185,4 +186,59 @@ void ll_cb_mul(list *node) {
 
 void ll_cb_div(list *node) {
 	__ll_cb_math(node, __div);
+}
+
+void ll_cb_let(list *node) {
+	list *lptr = NULL;
+	token *tk, *name_tk, *val_tk, *scope_tk;
+	char *name, *value, *scope_str;
+	int arg_col = 0, tag = 0;
+
+	// get arg_col
+	tk = (token*)node->data;
+	if (!tk || !tk->val)
+		return;
+	arg_col = tk->index + 1;
+
+	// check for scope
+	lptr = node->next;
+	scope_tk = (token*)lptr->data;
+	if (scope_tk->val && (scope_tk->index == arg_col)) {
+		scope_str = scope_tk->val;
+
+		if (*scope_str == ':') {
+			scope_str = &scope_str[1];
+
+			lptr = lptr->next;
+		}
+		else
+			scope_str = "global";
+	}
+
+	// main loop
+	while (lptr) {
+		name_tk = (token*)lptr->data;
+		if (!name_tk || (name_tk->index != arg_col)) {
+			lptr = lptr->next;
+
+			continue;
+		}
+		name = (char*)name_tk->val;
+
+		// check for next
+		if (lptr->next)
+			val_tk = (token*)lptr->next->data;
+
+		// check fpr value
+		if (!val_tk || (val_tk->index != arg_col + 1))
+			value = "";
+		else
+			value = val_tk->val;
+
+		//printf("[%s] %s = %s\n", scope_str, name, value);
+		tag = vl_scope_check(scope_str);
+		vl_var_add(name, value, tag);
+
+		lptr = lptr->next;
+	}
 }
