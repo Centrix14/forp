@@ -105,13 +105,9 @@ void vl_var_list_init() {
 	var_list = list_init_node(NULL);
 }
 
-void vl_var_add(char *name, char *value, char *scope_name) {
+void vl_var_add(char *name, char *value, int tag) {
 	list *last = NULL;
 	var *new_var = NULL;
-	int tag = 0;
-
-	// get variable tag
-	tag = vl_scope_get_tag(scope_name);
 
 	// init
 	new_var = (var*)malloc(sizeof(var));
@@ -122,7 +118,7 @@ void vl_var_add(char *name, char *value, char *scope_name) {
 	}
 
 	new_var->name = (char*)malloc(strlen(name) + 1);
-	new_var->value = (char*)malloc(strlen(name) + 1);
+	new_var->value = (char*)malloc(strlen(value) + 1);
 	new_var->tag = tag;
 
 	// copy to fields
