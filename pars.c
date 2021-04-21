@@ -6,10 +6,14 @@
 #include "pars.h"
 #include "token.h"
 #include "lib.h"
+#include "var.h"
 
 int main(int argc, char *argv[]) {
 	list prog = {NULL, NULL, NULL};
 	FILE *stream = NULL;
+
+	vl_scope_list_init();
+	vl_var_list_init();
 
 	if (argc >= 2) {
 		stream = fopen(argv[1], "r");
@@ -28,6 +32,10 @@ int main(int argc, char *argv[]) {
 	// free list
 	tl_crawl_list(&prog, tl_free_token);
 	tl_free_list(&prog);
+
+	// free scope and variables
+	vl_var_list_free();
+	vl_scope_free();
 
 	return 0;
 }
