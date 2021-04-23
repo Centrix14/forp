@@ -6,6 +6,7 @@ void ll_run_std(int code, list *node);
 
 int ll_is_std(char *name);
 void ll_make_ret(list *node);
+void ll_eval_var(list *node, var *vptr);
 
 void ll_cb_print(list *node);
 void ll_cb_help(list *node);
