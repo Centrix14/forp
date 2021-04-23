@@ -5,15 +5,19 @@
 #include "tl2/list.h"
 #include "pars.h"
 #include "token.h"
-#include "lib.h"
 #include "var.h"
+#include "lib.h"
 
 int main(int argc, char *argv[]) {
 	list prog = {NULL, NULL, NULL};
 	FILE *stream = NULL;
 
+	// init vars and scopes
 	vl_scope_list_init();
 	vl_var_list_init();
+
+	// add inital scope - global
+	vl_scope_new("global");
 
 	if (argc >= 2) {
 		stream = fopen(argv[1], "r");
@@ -99,7 +103,7 @@ void pl_pars_stream(list *tree, FILE *file) {
 
 	fgets(line, 256, file);
 	while (!feof(file)) {
-		if (!strcmp(line, "exit\n"))
+		if (*line == 'q')
 			exit(0);
 		else if ((strlen(line) - 1) > 0) { // + \n
 			pl_pars_line(tree, line);
@@ -116,7 +120,7 @@ void pl_pars_stream(list *tree, FILE *file) {
 void pl_print_welcome() {
 	printf("Welcome to FORP interactive interpreter!\n"\
 		   "Use `;` to perform the previous operation\n"\
-		   "Use Ctrl-C or `exit` to exit\nEnjoy!\n\n");
+		   "Use Ctrl-C or `q` to exit\nEnjoy!\n\n");
 }
 
 void pl_prompt(FILE *stream) {
