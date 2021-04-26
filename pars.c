@@ -7,17 +7,20 @@
 #include "token.h"
 #include "var.h"
 #include "lib.h"
+#include "scope.h"
+
+list *var_scope;
 
 int main(int argc, char *argv[]) {
 	list prog = {NULL, NULL, NULL};
 	FILE *stream = NULL;
 
 	// init vars and scopes
-	vl_scope_list_init();
+	var_scope = sl_scope_list_init();
 	vl_var_list_init();
 
 	// add inital scope - global
-	vl_scope_new("global");
+	sl_scope_new(var_scope, "global");
 
 	if (argc >= 2) {
 		stream = fopen(argv[1], "r");
@@ -39,7 +42,7 @@ int main(int argc, char *argv[]) {
 
 	// free scope and variables
 	vl_var_list_free();
-	vl_scope_free();
+	sl_scope_free(var_scope);
 
 	return 0;
 }
@@ -103,7 +106,7 @@ void pl_pars_stream(list *tree, FILE *file) {
 
 	fgets(line, 256, file);
 	while (!feof(file)) {
-		if (*line == 'q')
+		if (!strncmp(line, "exit", 4))
 			exit(0);
 		else if ((strlen(line) - 1) > 0) { // + \n
 			pl_pars_line(tree, line);
