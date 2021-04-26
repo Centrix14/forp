@@ -56,7 +56,7 @@ void ll_exec(list *node) {
 }
 
 int ll_is_std(char *name) {
-	char *names[] = {"print", "help", ";", "+", "-", "*", "/", "let", NULL};
+	char *names[] = {"print", "help", ";", "+", "-", "*", "/", "let", "func", NULL};
 	int i = 0;
 
 	for (; names[i]; i++)
@@ -67,7 +67,7 @@ int ll_is_std(char *name) {
 
 void ll_run_std(int code, list *node) {
 	void (*std[])(list*) = {ll_cb_print, ll_cb_help, ll_cb_nil, ll_cb_sum, ll_cb_sub, \
-	ll_cb_mul, ll_cb_div, ll_cb_let};
+	ll_cb_mul, ll_cb_div, ll_cb_let, ll_cb_func};
 
 	(*std[code])(node);
 }
@@ -317,4 +317,8 @@ void ll_cb_let(list *node) {
 
 		lptr = lptr->next;
 	}
+}
+
+void ll_cb_func(list *node) {
+	printf("hey!");
 }
