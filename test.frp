@@ -1,3 +1,9 @@
+;
+	example of using func
+	this is a comment
+	print
+		huh!
+
 func
 	my-print
 	
