@@ -304,7 +304,7 @@ void ll_cb_let(list *node) {
 		if (!val_tk || (val_tk->index != arg_col + 1))
 			value = "";
 		else
-			value = val_tk->val;
+			value = val_tk->ret;
 
 		// check for existance
 		exist = vl_var_get_exist(name, scope_str);
