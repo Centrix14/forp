@@ -16,6 +16,7 @@ void ll_cb_sub(list *node);
 void ll_cb_mul(list *node);
 void ll_cb_div(list *node);
 void ll_cb_let(list *node);
+void ll_cb_func(list *node);
 
 // for internal using only!
 void __sum(double *acc, double arg);
