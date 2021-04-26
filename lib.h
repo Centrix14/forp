@@ -3,6 +3,7 @@
 
 void ll_exec(list *node);
 void ll_run_std(int code, list *node);
+void ll_process_spec_operators(list *node);
 
 int ll_is_std(char *name);
 void ll_make_ret(list *node);
