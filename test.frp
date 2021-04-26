@@ -1,11 +1,11 @@
 let
-	:ms
 	a
-		5
+		123
 
 let
-	:ms
 	b
-		4
-	c
-		8
+		a
+
+print
+	b
+	.n
