@@ -3,23 +3,10 @@
 
 typedef struct {
 	char *name;
-	int tag;
-} scope;
-
-typedef struct {
-	char *name;
 	char *value;
 
 	int tag;
 } var;
-
-void vl_scope_list_init();
-void vl_scope_free();
-int vl_scope_new(char *name);
-int vl_scope_check(char *name);
-
-int vl_scope_get_tag(char *name);
-char *vl_scope_get_name(int tag);
 
 void vl_var_add(char *name, char *value, int tag);
 void vl_var_change_value(char *name, char *value, char *scope_name);
