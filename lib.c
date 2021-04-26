@@ -7,6 +7,9 @@
 #include "token.h"
 #include "var.h"
 #include "lib.h"
+#include "scope.h"
+
+extern list *var_scope;
 
 char *__ll_remove_spaces(char *str) {
 	static char buf[256] = "";
@@ -94,7 +97,7 @@ void ll_eval_var(list *node, var *vptr) {
 	// get scope and name
 	variable_name = vptr->name;
 	tag = vptr->tag;
-	scope_name = vl_scope_get_name(tag);
+	scope_name = sl_scope_get_name(var_scope, tag);
 
 	// get value and tk
 	variable_value = vl_var_get_value(variable_name, scope_name);
@@ -308,7 +311,7 @@ void ll_cb_let(list *node) {
 		if (exist)
 			vl_var_change_value(name, value, scope_str);
 		else {
-			tag = vl_scope_check(scope_str);
+			tag = sl_scope_check(var_scope, scope_str);
 			vl_var_add(name, value, tag);
 		}
 
