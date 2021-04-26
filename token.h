@@ -6,6 +6,7 @@ typedef struct {
 	char *ret;
 
 	int index;
+	int eval_me;
 } token;
 
 void tl_add_token(list *prog, char *tok, int index);
