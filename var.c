@@ -4,119 +4,10 @@
 
 #include "tl2/list.h"
 #include "var.h"
+#include "scope.h"
 
-static list *scope_list;
 static list *var_list;
-
-int vl_scope_get_tag(char *name) {
-	list *node = NULL;
-	scope *sc = NULL;
-
-	node = scope_list;
-	while (node) {
-		if (!node->data) {
-			node = node->next;
-
-			continue;
-		}
-
-		sc = (scope*)node->data;
-		if (sc->name)
-			if (!strcmp(sc->name, name))
-				return sc->tag;
-
-		node = node->next;
-	}
-
-	return -1;
-}
-
-int vl_scope_check(char *name) {
-	int tag = 0;
-
-	tag = vl_scope_get_tag(name);
-	if (tag >= 0)
-		return tag;
-	else
-		return vl_scope_new(name);
-}
-
-int vl_scope_new(char *name) {
-	static int count = 0;
-	list *last = NULL;
-	scope *sc = NULL;
-
-	// init
-	sc = (scope*)malloc(sizeof(scope));
-	if (!sc) {
-		perror("forp");
-
-		exit(0);
-	}
-
-	sc->name = (char*)malloc(strlen(name) + 1);
-	sc->tag = count++;
-
-	// copy name to scope
-	strcpy(sc->name, name);
-
-	// add scope to list
-	list_add_node(scope_list);
-	last = list_get_last(scope_list);
-	list_set_data(last, sc);
-
-	return sc->tag;
-}
-
-void vl_scope_free() {
-	list *node = NULL, *next = NULL;
-	scope *sc = NULL;
-
-	node = scope_list;
-	while (node) {
-		next = node->next;
-
-		if (!node->data) {
-			node = node->next;
-
-			continue;
-		}
-
-		// free scope
-		sc = (scope*)node->data;
-		if (sc) {
-			if (sc->name)
-				free(sc->name);
-			free(sc);
-		}
-
-		// free node
-		free(node);
-
-		node = next;
-	}
-}
-
-void vl_scope_list_init() {
-	scope_list = list_init_node(NULL);
-}
-
-char *vl_scope_get_name(int tag) {
-	list *node = NULL;
-	scope *sc = NULL;
-
-	node = scope_list;
-	while (node) {
-		sc = (scope*)node->data;
-		if (sc)
-			if (sc->tag == tag)
-				return sc->name;
-
-		node = node->next;
-	}
-
-	return NULL;
-}
+extern list *var_scope;
 
 void vl_var_list_init() {
 	var_list = list_init_node(NULL);
@@ -153,7 +44,7 @@ var *vl_var_get(char *name, char *scope_name) {
 	var *vptr = NULL;
 	int tag = 0;
 
-	tag = vl_scope_get_tag(scope_name);
+	tag = sl_scope_get_tag(var_scope, scope_name);
 	node = var_list;
 	while (node) {
 		if (!node->data) {
@@ -230,7 +121,7 @@ void vl_var_list_show() {
 }
 
 int vl_var_get_exist(char *name, char *scope_name) {
-	if (vl_scope_get_tag(scope_name) == -1)
+	if (sl_scope_get_tag(var_scope, scope_name) == -1)
 		return 0;
 	if (!vl_var_get(name, scope_name))
 		return 0;
