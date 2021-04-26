@@ -23,14 +23,54 @@ char *__ll_remove_spaces(char *str) {
 	return buf;
 }
 
+int __ll_is_spec(char *str) {
+	char *specs[] = {"func", ";", NULL};
+
+	for (int i = 0; specs[i]; i++)
+		if (!strcmp(specs[i], str))
+			return i;
+	return -1;
+}
+
+void ll_process_spec_operators(list *node) {
+	static int marked_index = -1;
+	token *tk = NULL;
+	char *gist = NULL;
+
+	// extract token
+	tk = (token*)node->data;
+	if (!tk)
+		return ;
+
+	// extract gist
+	gist = __ll_remove_spaces(tk->val);
+
+	// set marked index
+	if (__ll_is_spec(gist) > -1) {
+		marked_index = tk->index;
+
+		return ;
+	}
+
+	// check for marked index
+	if (marked_index < 0)
+		return ;
+
+	if (tk->index > marked_index)
+		tk->eval_me = 0;
+	else
+		marked_index = -1;
+}
+
 void ll_exec(list *node) {
 	token *tk = NULL;
 	var *vptr = NULL;
 	char *gist = NULL;
 	int res = 0;
 
+	// extract token
 	tk = (token*)node->data;
-	if (!tk)
+	if (!tk || !tk->eval_me)
 		return ;
 
 	// get the gist of the string
