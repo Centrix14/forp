@@ -87,7 +87,7 @@ void vl_var_list_free() {
 			continue;
 		}
 
-		// free scope
+		// free var
 		vptr = (var*)node->data;
 		if (vptr) {
 			if (vptr->name)
