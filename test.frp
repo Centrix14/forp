@@ -1,11 +1,6 @@
-let
-	a
-		123
-
-let
-	b
-		a
-
-print
-	b
-	.n
+func
+	my-print
+	
+	print
+		Hello, from my-print!
+		.n
