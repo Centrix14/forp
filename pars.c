@@ -5,22 +5,29 @@
 #include "tl2/list.h"
 #include "pars.h"
 #include "token.h"
-#include "var.h"
-#include "lib.h"
 #include "scope.h"
+#include "var.h"
+#include "func.h"
+#include "lib.h"
 
 list *var_scope;
+list *func_scope;
 
 int main(int argc, char *argv[]) {
 	list prog = {NULL, NULL, NULL};
 	FILE *stream = NULL;
 
-	// init vars and scopes
+	// init vars and var_scope
 	var_scope = sl_scope_list_init();
 	vl_var_list_init();
 
+	// init funcs and func_scope
+	func_scope = sl_scope_list_init();
+	fl_func_list_init();
+
 	// add inital scope - global
 	sl_scope_new(var_scope, "global");
+	sl_scope_new(func_scope, "global");
 
 	if (argc >= 2) {
 		stream = fopen(argv[1], "r");
@@ -36,13 +43,17 @@ int main(int argc, char *argv[]) {
 		pl_pars_stream(&prog, stdin);
 	}
 
-	// free list
+	// free programm buffer
 	tl_crawl_list(&prog, tl_free_token);
 	tl_free_list(&prog);
 
-	// free scope and variables
+	// free var_scope and variables
 	vl_var_list_free();
 	sl_scope_free(var_scope);
+
+	// free func_scope and funcs
+	fl_func_list_free();
+	sl_scope_free(func_scope);
 
 	return 0;
 }
