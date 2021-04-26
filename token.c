@@ -14,6 +14,7 @@ void tl_add_token(list *prog, char *tok, int index) {
 	tk->val = malloc(strlen(tok) + 1);
 	tk->ret = NULL;
 	tk->index = index;
+	tk->eval_me = 1;
 
 	strcpy(tk->val, tok);
 
