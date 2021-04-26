@@ -85,6 +85,7 @@ void pl_exec(list *node) {
 	//puts(""); // just for new line
 
 	// run list
+	tl_crawl_list(node, ll_process_spec_operators);
 	tl_crawl_list_reverse(node, ll_exec);
 
 	// free old tree
