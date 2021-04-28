@@ -1,0 +1,6 @@
+;
+	simple hello world programm
+
+print
+	Hello, world!
+	.n
