@@ -1,0 +1,23 @@
+;
+	simple math sample
+
+print
+	+
+		1
+		2
+	.n
+
+	-
+		1
+		2
+	.n
+
+	*
+		1
+		2
+	.n
+	
+	/
+		1
+		2
+	.n
