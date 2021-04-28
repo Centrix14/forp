@@ -9,8 +9,15 @@ typedef struct {
 } func;
 
 void fl_func_list_init();
+void fl_func_list_free();
+
 void fl_add_func(list *proto, list *body, int tag);
 void fl_copy_tree_by_index(list *dest, list *src, int indx);
-void fl_func_list_free();
+
+void fl_func_show(list *lptr);
+void fl_func_show_all();
+
+char *fl_func_get_name(func *fptr);
+func *fl_func_get(list *target_scope, char *name, char *scope_name);
 
 #endif
