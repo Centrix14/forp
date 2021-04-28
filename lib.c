@@ -8,8 +8,10 @@
 #include "var.h"
 #include "lib.h"
 #include "scope.h"
+#include "func.h"
 
 extern list *var_scope;
+extern list *func_scope;
 
 char *__ll_remove_spaces(char *str) {
 	static char buf[256] = "";
@@ -65,6 +67,7 @@ void ll_process_spec_operators(list *node) {
 void ll_exec(list *node) {
 	token *tk = NULL;
 	var *vptr = NULL;
+	func *fptr = NULL;
 	char *gist = NULL;
 	int res = 0;
 
@@ -88,6 +91,14 @@ void ll_exec(list *node) {
 	vptr = vl_var_get_exist_with_syntax(gist);
 	if (vptr) {
 		ll_eval_var(node, vptr);
+
+		return ;
+	}
+
+	// check for function
+	fptr = fl_func_get(func_scope, gist, "global");
+	if (fptr) {
+		printf("yey!\n");
 
 		return ;
 	}
@@ -360,5 +371,56 @@ void ll_cb_let(list *node) {
 }
 
 void ll_cb_func(list *node) {
-	printf("hey!");
+	list *lptr, *proto, *body;
+	token *scope_tk, *head_tk, *proto_tk, *body_tk;
+	char *scope_name;
+	int arg_col = 0, tag = 0;
+
+	// check for next
+	lptr = node->next;
+	if (!lptr)
+		return ;
+	
+	// get arg_col
+	head_tk = (token*)node->data;
+	if (!head_tk)
+		return ;
+	arg_col = head_tk->index + 1;
+
+	// check for scope name
+	scope_tk = (token*)lptr->data;
+	if (!scope_tk)
+		return ;
+
+	if (*scope_tk->val == ':') {
+		scope_name = &(scope_tk->val[1]);
+
+		lptr = lptr->next;
+	}
+	else
+		scope_name = "global";
+
+	// check scope
+	tag = sl_scope_check(func_scope, scope_name);
+
+	// get proto
+	proto_tk = (token*)lptr->data;
+	if (!proto_tk || proto_tk->index != arg_col)
+		return ;
+	proto = lptr;
+	lptr = lptr->next;
+
+	// get body
+	body_tk = (token*)lptr->data;
+	while (body_tk->index > arg_col) {
+		lptr = lptr->next;
+
+		body_tk = (token*)lptr->data;
+	}
+	body = lptr;
+	body_tk = (token*)body->data;
+
+	// add function
+	fl_add_func(proto, body, tag);
+	fl_func_show_all();
 }
