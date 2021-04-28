@@ -9,4 +9,6 @@ void pl_pars_line(list *tree, char *line);
 void pl_print_welcome();
 void pl_prompt(FILE *stream);
 
+int pl_strlen(char *str);
+
 #endif
