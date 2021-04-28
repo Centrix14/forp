@@ -1,0 +1,43 @@
+;
+	simple variables sample
+
+;
+	create variables:
+	a = 123
+	b = 567
+
+let
+	a
+		123
+
+	b
+		567
+
+;
+	print values of a and b
+
+print
+	a = 
+	a
+	.n
+
+	b = 
+	b
+	.n
+
+;
+	calculate sum of a and b
+	calculate substruction of a and b
+
+print
+	a + b = 
+	+
+		a
+		b
+	.n
+
+	a - b = 
+	-
+		a
+		b
+	.n	
