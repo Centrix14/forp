@@ -6,7 +6,12 @@
 
 func
 	my-print
+		stream
+		msg
 	
 	print
 		Hello, from my-print!
 		.n
+
+my-print
+	a
