@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <ctype.h>
 
 #include "tl2/list.h"
 #include "pars.h"
@@ -120,7 +121,7 @@ void pl_pars_stream(list *tree, FILE *file) {
 	while (!feof(file)) {
 		if (!strncmp(line, "exit", 4))
 			exit(0);
-		else if ((strlen(line) - 1) > 0) { // + \n
+		else if ((pl_strlen(line)) > 0) { // + \n
 			pl_pars_line(tree, line);
 		}
 
@@ -135,10 +136,23 @@ void pl_pars_stream(list *tree, FILE *file) {
 void pl_print_welcome() {
 	printf("Welcome to FORP interactive interpreter!\n"\
 		   "Use `;` to perform the previous operation\n"\
-		   "Use Ctrl-C or `q` to exit\nEnjoy!\n\n");
+		   "Use Ctrl-C or `exit` to exit\nEnjoy!\n\n");
 }
 
 void pl_prompt(FILE *stream) {
 	if (stream == stdin)
 		printf("| ");
+}
+
+int pl_strlen(char *str) {
+	int j = 0;
+
+	for (int i = 0, c = 0; str[i]; i++) {
+		c = str[i];
+
+		if (!isspace(c))
+			j++;
+	}
+
+	return j;
 }
