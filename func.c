@@ -59,13 +59,33 @@ void fl_add_func(list *proto, list *body, int tag) {
 	list_set_data(last, fptr);
 }
 
-void fl_copy_tree_by_index(list *dest, list *src, int indx) {
-	list *node = NULL, *last = NULL;
-	token *tk = NULL;
-	int is_first = 1;
+void __fl_create_util(list *node, list *dest) {
+	list *last;
+	token *tk;
 	size_t tok_size;
 
-	node = src;
+	tk = (token*)node->data;
+	if (!tk)
+		return ;
+
+	list_add_node(dest);
+	last = list_get_last(dest);
+
+	// copy data
+	tok_size = sizeof(node->data);
+	last->data = malloc(tok_size);
+	memcpy(last->data, node->data, tok_size);
+}
+
+void fl_copy_tree_by_index(list *dest, list *src, int indx) {
+	list *node = NULL;
+	token *tk = NULL;
+
+	// copy first node
+	__fl_create_util(src, dest);
+
+	// main loop
+	node = src->next;
 	while (node) {
 		tk = (token*)node->data;
 		if (!tk) {
@@ -73,21 +93,11 @@ void fl_copy_tree_by_index(list *dest, list *src, int indx) {
 
 			continue;
 		}
-		if (tk->index <= indx) {
-			if (is_first)
-				is_first = 0;
-			else
-				break;
-		}
+		if (tk->index <= indx)
+			break;
 
 		// add new node
-		list_add_node(dest);
-		last = list_get_last(dest);
-
-		// copy data
-		tok_size = sizeof(node->data);
-		last->data = malloc(tok_size);
-		memcpy(last->data, node->data, tok_size);
+		__fl_create_util(node, dest);
 
 		node = node->next;
 	}
@@ -122,4 +132,86 @@ void fl_func_list_free() {
 
 		node = next;
 	}
+}
+
+void fl_func_show_struct(list *node) {
+	token *tk;
+
+	tk = (token*)node->data;
+	if (!tk)
+		return ;
+
+	printf("val: %s\n", tk->val);
+	printf("ret: %s\n", tk->ret);
+}
+
+void fl_func_show(list *lptr) {
+	func *fptr;
+
+	// extract func
+	fptr = (func*)lptr->data;
+	if (!fptr)
+		return ;
+
+	// show fields
+	if (fptr->proto) {
+		puts("===\nproto\n");
+
+		tl_crawl_list(fptr->proto, fl_func_show_struct);
+
+		puts("===\nproto\n");
+	}
+	if (fptr->body) {
+		puts("===\nbody\n");
+
+		tl_crawl_list(fptr->body, fl_func_show_struct);
+
+		puts("===\nbody\n");
+	}
+
+	printf("tag = %d\n", fptr->tag);
+}
+
+void fl_func_show_all() {
+	tl_crawl_list(func_list, fl_func_show);
+}
+
+char *fl_func_get_name(func *fptr) {
+	list *lptr;
+
+	lptr = fptr->proto->next;
+
+	return (char*)lptr->data;
+}
+
+func *fl_func_get(list *target_scope, char *name, char *scope_name) {
+	list *node;
+	func *fptr;
+	int tag = 0;
+	char *func_name;
+
+	// get tag
+	tag = sl_scope_get_tag(target_scope, scope_name);
+
+	// main loop
+	node = func_list;
+	while (node) {
+		if (!node->data) {
+			node = node->next;
+
+			continue;
+		}
+
+		fptr = (func*)node->data;
+		if (fptr->tag == tag) {
+			func_name = fl_func_get_name(fptr);
+
+			if (!strcmp(func_name, name))
+				return fptr;
+		}
+
+		node = node->next;
+	}
+
+	return NULL;
 }
