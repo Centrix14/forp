@@ -5,13 +5,26 @@
 		huh!
 
 func
+	:user-scope
 	my-print
 		stream
+		color
 		msg
 	
 	print
 		Hello, from my-print!
 		.n
 
-my-print
-	a
+user-scope:my-print
+	out
+	blue
+	Hello!
+
+print
+	.n
+	my-print-prm-scope:stream
+	.n
+	my-print-prm-scope:color
+	.n
+	my-print-prm-scope:msg
+	.n
