@@ -146,14 +146,23 @@ void vl_var_change_value(char *name, char *value, char *scope_name) {
 
 var *vl_var_get_exist_with_syntax(char *name) {
 	char *scope_name, *variable_name;
+	char *cpy;
 
-	if (strchr(name, ':')) {
-		scope_name = strtok(name, ":");
-		variable_name = strtok(NULL, "\n\b\r\t ");
+	cpy = (char*)malloc(strlen(name) + 1);
+	if (!cpy) {
+		perror("forp");
+
+		exit(0);
+	}
+	strcpy(cpy, name);
+
+	if (strchr(cpy, ':')) {
+		scope_name = strtok(cpy, ":");
+		variable_name = strtok(NULL, ":");
 	}
 	else {
 		scope_name = "global";
-		variable_name = name;
+		variable_name = cpy;
 	}
 
 	if (!variable_name || !scope_name)
