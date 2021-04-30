@@ -19,5 +19,8 @@ void fl_func_show_all();
 
 char *fl_func_get_name(func *fptr);
 func *fl_func_get(list *target_scope, char *name, char *scope_name);
+func *fl_func_get_with_syntax(list *target_scope, char *name);
+
+void fl_func_call(func *fptr, list *node);
 
 #endif
