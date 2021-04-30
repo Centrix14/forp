@@ -96,9 +96,10 @@ void ll_exec(list *node) {
 	}
 
 	// check for function
-	fptr = fl_func_get(func_scope, gist, "global");
+	fptr = fl_func_get_with_syntax(func_scope, gist);
 	if (fptr) {
-		printf("yey!\n");
+		fl_func_call(fptr, node);
+		//printf("yey!\n");
 
 		return ;
 	}
@@ -422,5 +423,4 @@ void ll_cb_func(list *node) {
 
 	// add function
 	fl_add_func(proto, body, tag);
-	fl_func_show_all();
 }
