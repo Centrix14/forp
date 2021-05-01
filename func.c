@@ -7,9 +7,11 @@
 #include "scope.h"
 #include "func.h"
 #include "var.h"
+#include "lib.h"
 
 static list *func_list;
 extern list *var_scope;
+extern char *current_scope;
 
 void fl_func_list_init() {
 	func_list = list_init_node(NULL);
@@ -77,6 +79,8 @@ void __fl_copy_tk(token *dest_tk, token *src_tk) {
 	// copy integer fields
 	dest_tk->index = src_tk->index;
 	dest_tk->eval_me = src_tk->eval_me;
+	dest_tk->val = NULL;
+	dest_tk->ret = NULL;
 
 	// copy text
 	if (src_tk->val) {
@@ -271,7 +275,7 @@ func *fl_func_get_with_syntax(list *target_scope, char *name) {
 		func_name = strtok(NULL, ":");
 	}
 	else {
-		scope_name = "global";
+		scope_name = current_scope;
 		func_name = cpy;
 	}
 
@@ -295,6 +299,7 @@ void __fl_func_set_parameters(func *fptr, list *node) {
 	}
 	strcpy(parameter_scope_cpy, parameter_scope);
 	strcat(parameter_scope_cpy, "-prm-scope");
+	current_scope = parameter_scope_cpy;
 
 	// get scope tag
 	tag = sl_scope_check(var_scope, parameter_scope_cpy);
@@ -306,7 +311,7 @@ void __fl_func_set_parameters(func *fptr, list *node) {
 		arg_tk = (token*)arg_node->data;
 		param_tk = (token*)param_node->data;
 
-		printf("[%d] %s = %s\n", tag, param_tk->val, arg_tk->ret);
+		//printf("[%d] %s = %s\n", tag, param_tk->val, arg_tk->ret);
 		vl_var_add(param_tk->val, arg_tk->ret, tag);
 
 		arg_node = arg_node->next;
@@ -315,11 +320,39 @@ void __fl_func_set_parameters(func *fptr, list *node) {
 }
 
 void __fl_func_call(func *fptr) {
-	
+	tl_crawl_list(fptr->body, ll_process_spec_operators);
+	tl_crawl_list_reverse(fptr->body, ll_exec);
 }
 
 void __fl_func_unset_parameters(func *fptr) {
 	
+}
+
+void __fl_func_set_return(func *fptr, list *node) {
+	list *head = NULL;
+	token *head_tk;
+	char *ret = NULL;
+
+	// get head
+	head = node;
+	head_tk = (token*)head->data;
+	if (!head || !head_tk) {
+		fprintf(stderr, "forp: can\'t get function head\n");
+
+		exit(0);
+	}
+
+	// get ret
+	ret = fl_func_get_return_value(fptr);
+
+	// set ret
+	if (!head_tk->ret)
+		head_tk->ret = (char*)malloc(strlen(ret) + 1);
+	else
+		head_tk->ret = (char*)realloc(head_tk->ret, strlen(ret) + 1);
+
+	// copy
+	strcpy(head_tk->ret, ret);
 }
 
 void fl_func_call(func *fptr, list *node) {
@@ -329,6 +362,24 @@ void fl_func_call(func *fptr, list *node) {
 	// call function
 	__fl_func_call(fptr);
 
+	// set return
+	__fl_func_set_return(fptr, node);
+
 	// unset variables
 	__fl_func_unset_parameters(fptr);
+}
+
+char *fl_func_get_return_value(func *fptr) {
+	list *node = NULL;
+	token *tk = NULL;
+
+	node = fptr->body->next;
+	tk = (token*)node->data;
+	if (!tk) {
+		fprintf(stderr, "forp: internal interpreter error\n");
+
+		exit(0);
+	}
+
+	return tk->ret;
 }
