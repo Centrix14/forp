@@ -13,6 +13,8 @@
 extern list *var_scope;
 extern list *func_scope;
 
+char *current_scope = "global";
+
 char *__ll_remove_spaces(char *str) {
 	static char buf[256] = "";
 	int j = 0;
@@ -55,13 +57,17 @@ void ll_process_spec_operators(list *node) {
 	}
 
 	// check for marked index
-	if (marked_index < 0)
+	if (marked_index < 0) {
+		tk->eval_me = 1;
 		return ;
+	}
 
 	if (tk->index > marked_index)
 		tk->eval_me = 0;
-	else
+	else {
+		tk->eval_me = 1;
 		marked_index = -1;
+	}
 }
 
 void ll_exec(list *node) {
@@ -108,7 +114,8 @@ void ll_exec(list *node) {
 }
 
 int ll_is_std(char *name) {
-	char *names[] = {"print", "help", ";", "+", "-", "*", "/", "let", "func", NULL};
+	char *names[] = {"print", "help", ";", "+", "-", "*", "/", "let", "func", \
+		"poly", NULL};
 	int i = 0;
 
 	for (; names[i]; i++)
@@ -118,8 +125,8 @@ int ll_is_std(char *name) {
 }
 
 void ll_run_std(int code, list *node) {
-	void (*std[])(list*) = {ll_cb_print, ll_cb_help, ll_cb_nil, ll_cb_sum, ll_cb_sub, \
-	ll_cb_mul, ll_cb_div, ll_cb_let, ll_cb_func};
+	void (*std[])(list*) = {ll_cb_print, ll_cb_help, ll_cb_nil, ll_cb_sum, \
+		ll_cb_sub, ll_cb_mul, ll_cb_div, ll_cb_let, ll_cb_func, ll_cb_poly};
 
 	(*std[code])(node);
 }
@@ -252,6 +259,11 @@ void __ll_cb_math(list *node, void (*oper)(double*, double)) {
 		arg_tk = (token*)lptr->data;
 		if (arg_tk->index == arg_col)
 			(*oper)(&acc, atof(arg_tk->ret));
+		else if (arg_tk->index > arg_col) {
+			lptr = lptr->next;
+
+			continue;
+		}
 		else
 			break;
 
@@ -335,7 +347,7 @@ void ll_cb_let(list *node) {
 			lptr = lptr->next;
 		}
 		else
-			scope_str = "global";
+			scope_str = current_scope;
 	}
 
 	// main loop
@@ -399,7 +411,7 @@ void ll_cb_func(list *node) {
 		lptr = lptr->next;
 	}
 	else
-		scope_name = "global";
+		scope_name = current_scope;
 
 	// check scope
 	tag = sl_scope_check(func_scope, scope_name);
@@ -423,4 +435,49 @@ void ll_cb_func(list *node) {
 
 	// add function
 	fl_add_func(proto, body, tag);
+}
+
+void ll_cb_poly(list *node) {
+	list *lptr = NULL;
+	token *tk = NULL, *arg_tk = NULL, *targ_tk = NULL;
+	char *ret = NULL;
+	int indx = 0;
+
+	// get indx
+	tk = (token*)node->data;
+	indx = tk->index + 1;
+
+	// main loop
+	lptr = node->next;
+	while (lptr) {
+		arg_tk = (token*)lptr->data;
+		if (!arg_tk) {
+			lptr = lptr->next;
+
+			continue;
+		}
+
+		// check indx
+		if (arg_tk->index == indx && arg_tk->ret)
+			targ_tk = arg_tk;
+
+		lptr = lptr->next;
+	}
+
+	// check for null
+	if (!targ_tk) {
+		fprintf(stderr, "forp: poly can\'t fund last tree\n");
+
+		exit(0);
+	}
+	ret = targ_tk->ret;
+
+	// check for ret
+	if (!tk->ret)
+		tk->ret = (char*)malloc(strlen(ret) + 1);
+	else
+		tk->ret = (char*)realloc(tk->ret, strlen(ret) + 1);
+	
+	// copy
+	strcpy(tk->ret, ret);
 }
