@@ -8,6 +8,7 @@
 
 static list *var_list;
 extern list *var_scope;
+extern char *current_scope;
 
 void vl_var_list_init() {
 	var_list = list_init_node(NULL);
@@ -161,7 +162,7 @@ var *vl_var_get_exist_with_syntax(char *name) {
 		variable_name = strtok(NULL, ":");
 	}
 	else {
-		scope_name = "global";
+		scope_name = current_scope;
 		variable_name = cpy;
 	}
 
