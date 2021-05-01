@@ -5,26 +5,22 @@
 		huh!
 
 func
-	:user-scope
-	my-print
-		stream
-		color
-		msg
-	
-	print
-		Hello, from my-print!
-		.n
+	pifagor
+		a
+		b
 
-user-scope:my-print
-	out
-	blue
-	Hello!
+	poly	
+		+
+			*
+				b
+				b
+
+			*
+				a
+				a
 
 print
-	.n
-	my-print-prm-scope:stream
-	.n
-	my-print-prm-scope:color
-	.n
-	my-print-prm-scope:msg
-	.n
+	pifagor
+		3
+		4	
+	.n	
