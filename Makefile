@@ -1,2 +1,14 @@
+CC = gcc
+
+DB_FLAGS = -Wall -O0 -g
+CFLAGS = -o
+OPT_FLAGS = -O2
+
+RESULT = forp
+FILES = pars.c token.c lib.c var.c scope.c func.c tl2/list.c
+
 all:
-	gcc -Wall -O0 -g -o forp pars.c token.c lib.c var.c scope.c func.c tl2/list.c
+	$(CC) $(DB_FLAGS) $(CFLAGS) $(RESULT) $(FILES)
+
+rel:
+	$(CC) $(OPT_FLAGS) $(CFLAGS) $(RESULT) $(FILES)
