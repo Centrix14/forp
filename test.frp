@@ -5,11 +5,19 @@
 		huh!
 
 func
+	welcome
+
+	print
+		Welcome, to Pifagor function!
+		.n
+
+func
 	pifagor
 		a
 		b
 
-	poly	
+	poly
+		global:welcome
 		+
 			*
 				b
@@ -23,4 +31,4 @@ print
 	pifagor
 		3
 		4	
-	.n	
+	.n
