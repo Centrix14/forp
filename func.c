@@ -9,6 +9,8 @@
 #include "var.h"
 #include "lib.h"
 
+#define FUNC_SCOPE_POSTFIX "-local-scope"
+
 static list *func_list;
 extern list *var_scope;
 extern char *current_scope;
@@ -287,18 +289,19 @@ void __fl_func_set_parameters(func *fptr, list *node) {
 	list *arg_node, *param_node;
 	token *arg_tk, *param_tk;
 	char *parameter_scope, *parameter_scope_cpy;
-	int tag = 0;
+	int tag = 0, len = 0;
 
 	// get scope name
+	len = strlen(FUNC_SCOPE_POSTFIX);
 	parameter_scope = fl_func_get_name(fptr);
-	parameter_scope_cpy = (char*)malloc(strlen(parameter_scope) + 1);
+	parameter_scope_cpy = (char*)malloc(strlen(parameter_scope) + len + 1);
 	if (!parameter_scope_cpy) {
 		perror("forp");
 
 		exit(0);
 	}
 	strcpy(parameter_scope_cpy, parameter_scope);
-	strcat(parameter_scope_cpy, "-prm-scope");
+	strcat(parameter_scope_cpy, FUNC_SCOPE_POSTFIX);
 	current_scope = parameter_scope_cpy;
 
 	// get scope tag
@@ -324,8 +327,56 @@ void __fl_func_call(func *fptr) {
 	tl_crawl_list_reverse(fptr->body, ll_exec);
 }
 
+void __fl_func_remove_params(func *fptr, int tag) {
+	list *node = NULL;
+	token *tk = NULL;
+
+	node = fptr->proto->next->next;
+	while (node) {
+		tk = (token*)node->data;
+		if (!tk) {
+			node = node->next;
+
+			continue;
+		}
+
+		vl_var_remove(tk->val, tag);
+
+		node = node->next;
+	}
+}
+
 void __fl_func_unset_parameters(func *fptr) {
-	
+	char *scope_name = NULL, *func_name;
+	int len = 0, tag = 0;
+
+	// get function name
+	func_name = fl_func_get_name(fptr);
+	if (!func_name) {
+		fprintf(stderr, "forp: can\'t get function name\n");
+
+		exit(0);
+	}
+
+	// get scope name
+	len = strlen(FUNC_SCOPE_POSTFIX);
+	scope_name = (char*)malloc(strlen(func_name) + len + 1);
+	if (!scope_name) {
+		perror("forp");
+
+		exit(0);
+	}
+	strcpy(scope_name, func_name);
+	strcat(scope_name, FUNC_SCOPE_POSTFIX);
+
+	// get tag
+	tag = sl_scope_get_tag(var_scope, scope_name);
+
+	// remove params
+	__fl_func_remove_params(fptr, tag);
+
+	// remove scope
+	sl_scope_remove(var_scope, tag);
 }
 
 void __fl_func_set_return(func *fptr, list *node) {
@@ -344,6 +395,8 @@ void __fl_func_set_return(func *fptr, list *node) {
 
 	// get ret
 	ret = fl_func_get_return_value(fptr);
+	if (!ret)
+		ret = "0";
 
 	// set ret
 	if (!head_tk->ret)
