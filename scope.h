@@ -9,10 +9,13 @@ typedef struct {
 int sl_scope_check(list *scope_list, char *name);
 
 list *sl_scope_list_init();
-int sl_scope_new(list *scope_list, char *name);
 void sl_scope_free(list *scope_list);
 
 char *sl_scope_get_name(list *scope_list, int tag);
 int sl_scope_get_tag(list *scope_list, char *name);
+
+int sl_scope_new(list *scope_list, char *name);
+void sl_scope_remove(list *scope_list, int tag);
+void sl_scope_delete(list *node, scope *sc);
 
 #endif
