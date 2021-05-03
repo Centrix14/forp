@@ -171,3 +171,44 @@ var *vl_var_get_exist_with_syntax(char *name) {
 
 	return vl_var_get(variable_name, scope_name);
 }
+
+void vl_var_free(list *node, var *vptr) {
+	// remove node fomr list
+	if (node->prev)
+		node->prev->next = node->next;
+	if (node->next)
+		node->next->prev = node->prev;
+
+	// free var
+	if (vptr->name)
+		free(vptr->name);
+	if (vptr->value)
+		free(vptr->value);
+	free(vptr);
+
+	// free node
+	free(node);
+}
+
+void vl_var_remove(char *name, int tag) {
+	list *node = NULL, *next = NULL;
+	var *vptr = NULL;
+
+	node = var_list;
+	while (node) {
+		next = node->next;
+
+		vptr = (var*)node->data;
+		if (!vptr) {
+			node = node->next;
+
+			continue;
+		}
+
+		if (vptr->tag == tag)
+			if (!strcmp(vptr->name, name))
+				vl_var_free(node, vptr);
+
+		node = next;
+	}
+}
