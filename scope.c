@@ -114,3 +114,41 @@ char *sl_scope_get_name(list *scope_list, int tag) {
 
 	return NULL;
 }
+
+void sl_scope_remove(list *scope_list, int tag) {
+	list *node = NULL, *next = NULL;
+	scope *sc = NULL;
+	
+	node = scope_list;
+	while (node) {
+		next = node->next;
+
+		sc = (scope*)node->data;
+		if (!sc) {
+			node = node->next;
+
+			continue;
+		}
+
+		if (sc->tag == tag)
+			sl_scope_delete(node, sc);
+
+		node = next;
+	}
+}
+
+void sl_scope_delete(list *node, scope *sc) {
+	// unbound
+	if (node->prev)
+		node->prev->next = node->next;
+	if (node->next)
+		node->next->prev = node->prev;
+
+	// free sc
+	if (sc->name)
+		free(sc->name);
+	free(sc);
+
+	// free node
+	free(node);
+}
