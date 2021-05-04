@@ -44,7 +44,7 @@ void tl_show(list *prog) {
 
 	tk = (token*)prog->data;
 	if (tk)
-		printf("%s\n", tk->val);
+		printf("[%d] %s\n", tk->index, tk->val);
 }
 
 void tl_crawl_list(list *prog, void (*func)(list*)) {
@@ -90,5 +90,77 @@ void tl_crawl_list_reverse(list *prog, void (*func)(list*)) {
 			(*func)(node);
 
 		node = prev;
+	}
+}
+
+list *__tl_get_next(list *prog, int level) {
+	list *node = NULL;
+	token *tk = NULL;
+
+	node = prog;
+	while (node) {
+		tk = (token*)node->data;
+		if (!tk) {
+			node = node->next;
+
+			continue;
+		}
+
+		if (tk->index == level)
+			return node;
+		else if (tk->index < level)
+			break;
+
+		node = node->next;
+	}
+
+	return NULL;
+}
+
+int __tl_is_sub_tree(list *prog) {
+	token *tk, *next_tk;
+	
+	tk = (token*)prog->data;
+
+	if (prog->next)
+		next_tk = (token*)prog->next->data;
+	else
+		next_tk = NULL;
+
+	if (!tk || !next_tk)
+		return 0;
+	if (tk->index == (next_tk->index - 1))
+		return 1;
+	return 0;
+}
+
+void tl_crawl_list_level(list *prog, int level, void (*func)(list*)) {
+	list *node = NULL, *next = NULL;
+	token *tk = NULL;
+
+	node = prog;
+	while (node) {
+		tk = (token*)node->data;
+		if (!tk) {
+			node = node->next;
+
+			continue;
+		}
+
+		if (tk->index == level) {
+			if (__tl_is_sub_tree(node)) {
+				tl_crawl_list_level(node->next, level + 1, func);
+				next = __tl_get_next(node->next, level);
+			}
+			else
+				next = node->next;
+
+			(*func)(node);
+
+			node = next;
+			continue;
+		}
+		else
+			return ;
 	}
 }
