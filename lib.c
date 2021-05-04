@@ -353,6 +353,8 @@ void ll_cb_let(list *node) {
 	// main loop
 	while (lptr) {
 		name_tk = (token*)lptr->data;
+		if (name_tk->index < arg_col)
+			break;
 		if (!name_tk || (name_tk->index != arg_col)) {
 			lptr = lptr->next;
 
@@ -458,7 +460,7 @@ void ll_cb_poly(list *node) {
 		}
 
 		// check indx
-		if (arg_tk->index == indx && arg_tk->ret)
+		if (arg_tk->index == indx)
 			targ_tk = arg_tk;
 
 		lptr = lptr->next;
@@ -466,11 +468,15 @@ void ll_cb_poly(list *node) {
 
 	// check for null
 	if (!targ_tk) {
-		fprintf(stderr, "forp: poly can\'t fund last tree\n");
+		fprintf(stderr, "forp: poly can\'t find last tree\n");
 
 		exit(0);
 	}
+
+	// get ret
 	ret = targ_tk->ret;
+	if (!ret)
+		ret = "0";
 
 	// check for ret
 	if (!tk->ret)
