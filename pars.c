@@ -30,6 +30,9 @@ int main(int argc, char *argv[]) {
 	sl_scope_new(var_scope, "global");
 	sl_scope_new(func_scope, "global");
 
+	// call global scope
+	sl_scope_call(var_scope, "global");
+
 	if (argc >= 2) {
 		stream = fopen(argv[1], "r");
 
@@ -47,6 +50,9 @@ int main(int argc, char *argv[]) {
 	// free programm buffer
 	tl_crawl_list(&prog, tl_free_token);
 	tl_free_list(&prog);
+
+	// revoke global scope
+	sl_scope_revoke(var_scope, "global");
 
 	// free var_scope and variables
 	vl_var_list_free();
@@ -82,12 +88,12 @@ char *pl_get_token(char *str) {
 
 void pl_exec(list *node) {
 	// show old tree
-	//tl_crawl_list(node, tl_show);
+	//tl_crawl_list_level(node, 0, tl_show);
 	//puts(""); // just for new line
 
 	// run list
 	tl_crawl_list(node, ll_process_spec_operators);
-	tl_crawl_list_reverse(node, ll_exec);
+	tl_crawl_list_level(node, 0, ll_exec);
 
 	// free old tree
 	tl_crawl_list(node, tl_free_token);
