@@ -5,6 +5,9 @@
 #include "tl2/list.h"
 #include "scope.h"
 
+static int call_level_count = 0;
+extern char *current_scope;
+
 int sl_scope_get_tag(list *scope_list, char *name) {
 	list *node = NULL;
 	scope *sc = NULL;
@@ -53,6 +56,7 @@ int sl_scope_new(list *scope_list, char *name) {
 
 	sc->name = (char*)malloc(strlen(name) + 1);
 	sc->tag = count++;
+	sc->call_level = 0;
 
 	// copy name to scope
 	strcpy(sc->name, name);
@@ -151,4 +155,72 @@ void sl_scope_delete(list *node, scope *sc) {
 
 	// free node
 	free(node);
+}
+
+void sl_scope_call(list *node, char *name) {
+	list *lptr = NULL;
+	scope *sc = NULL;
+
+	lptr = node;
+	while (lptr) {
+		sc = (scope*)lptr->data;
+		if (!sc) {
+			lptr = lptr->next;
+
+			continue;
+		}
+
+		if (!strcmp(sc->name, name)) {
+			sc->call_level = call_level_count++;
+			current_scope = sl_scope_get_by_call_level(node, call_level_count - 1);
+		}
+
+		lptr = lptr->next;
+	}
+}
+
+void sl_scope_revoke(list *node, char *name) {
+	list *lptr = NULL;
+	scope *sc = NULL;
+
+	lptr = node;
+	while (lptr) {
+		sc = (scope*)lptr->data;
+		if (!sc) {
+			lptr = lptr->next;
+
+			continue;
+		}
+
+		if (!strcmp(sc->name, name)) {
+			sc->call_level = 0;
+			
+			call_level_count--;
+			current_scope = sl_scope_get_by_call_level(node, call_level_count - 1);
+		}
+
+		lptr = lptr->next;
+	}
+}
+
+char *sl_scope_get_by_call_level(list *node, int level) {
+	list *lptr = NULL;
+	scope *sc = NULL;
+
+	lptr = node;
+	while (lptr) {
+		sc = (scope*)lptr->data;
+		if (!sc) {
+			lptr = lptr->next;
+
+			continue;
+		}
+
+		if (sc->call_level == level)
+			return sc->name;
+
+		lptr = lptr->next;
+	}
+
+	return NULL;
 }
