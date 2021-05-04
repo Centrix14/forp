@@ -184,6 +184,7 @@ void fl_func_show_struct(list *node) {
 
 	printf("val: %s\n", tk->val);
 	printf("ret: %s\n", tk->ret);
+	printf("index: %d\n", tk->index);
 }
 
 void fl_func_show(list *lptr) {
@@ -302,7 +303,6 @@ void __fl_func_set_parameters(func *fptr, list *node) {
 	}
 	strcpy(parameter_scope_cpy, parameter_scope);
 	strcat(parameter_scope_cpy, FUNC_SCOPE_POSTFIX);
-	current_scope = parameter_scope_cpy;
 
 	// get scope tag
 	tag = sl_scope_check(var_scope, parameter_scope_cpy);
@@ -320,11 +320,14 @@ void __fl_func_set_parameters(func *fptr, list *node) {
 		arg_node = arg_node->next;
 		param_node = param_node->next;
 	}
+
+	// call new scope
+	sl_scope_call(var_scope, parameter_scope_cpy);
 }
 
 void __fl_func_call(func *fptr) {
 	tl_crawl_list(fptr->body, ll_process_spec_operators);
-	tl_crawl_list_reverse(fptr->body, ll_exec);
+	tl_crawl_list_level(fptr->body, 1, ll_exec);
 }
 
 void __fl_func_remove_params(func *fptr, int tag) {
@@ -374,6 +377,9 @@ void __fl_func_unset_parameters(func *fptr) {
 
 	// remove params
 	__fl_func_remove_params(fptr, tag);
+
+	// revoke scope
+	sl_scope_revoke(var_scope, scope_name);
 
 	// remove scope
 	sl_scope_remove(var_scope, tag);
