@@ -17,5 +17,6 @@ void tl_free_list(list *prog);
 
 void tl_crawl_list(list *prog, void (*func)(list*));
 void tl_crawl_list_reverse(list *prog, void (*func)(list*));
+void tl_crawl_list_level(list *prog, int level, void (*func)(list*));
 
 #endif
