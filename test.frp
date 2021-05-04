@@ -3,32 +3,9 @@
 	this is a comment
 	print
 		huh!
-
-func
-	welcome
-
+poly
+	let
+		p
+			3
 	print
-		Welcome, to Pifagor function!
-		.n
-
-func
-	pifagor
-		a
-		b
-
-	poly
-		global:welcome
-		+
-			*
-				b
-				b
-
-			*
-				a
-				a
-
-print
-	pifagor
-		3
-		4	
-	.n
+		p
