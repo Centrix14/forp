@@ -1,11 +1,19 @@
-;
-	example of using func
-	this is a comment
-	print
-		huh!
-poly
-	let
-		p
-			3
-	print
-		p
+let
+	a
+		5
+
+?
+	>
+		a
+		0
+	poly
+		print
+			/
+				a
+				2
+
+			.n
+
+		let
+			a
+				0
