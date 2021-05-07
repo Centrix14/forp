@@ -1,0 +1,27 @@
+func
+	div
+		a
+		b
+
+	poly
+		?
+			=
+				b
+				0
+			poly
+				print
+					Division by zero!
+					.n
+				let
+					b
+						1
+
+		/
+			a
+			b
+
+print
+	div
+		1
+		2
+	.n
