@@ -14,6 +14,7 @@
 static list *func_list;
 extern list *var_scope;
 extern char *current_scope;
+extern int marked_index;
 
 void fl_func_list_init() {
 	func_list = list_init_node(NULL);
@@ -326,6 +327,7 @@ void __fl_func_set_parameters(func *fptr, list *node) {
 }
 
 void __fl_func_call(func *fptr) {
+	marked_index = -1;
 	tl_crawl_list(fptr->body, ll_process_spec_operators);
 	tl_crawl_list_level(fptr->body, 1, ll_exec);
 }
