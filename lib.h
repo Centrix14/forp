@@ -19,6 +19,13 @@ void ll_cb_div(list *node);
 void ll_cb_let(list *node);
 void ll_cb_func(list *node);
 void ll_cb_poly(list *node);
+void ll_cb_if(list *node);
+void ll_cb_big(list *node);
+void ll_cb_small(list *node);
+void ll_cb_big_eq(list *node);
+void ll_cb_small_eq(list *node);
+void ll_cb_eq(list *node);
+void ll_cb_not_eq(list *node);
 
 // for internal using only!
 void __sum(double *acc, double arg);
