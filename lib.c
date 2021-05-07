@@ -14,6 +14,7 @@ extern list *var_scope;
 extern list *func_scope;
 
 char *current_scope = "global";
+int marked_index = -1;
 
 char *__ll_remove_spaces(char *str) {
 	static char buf[256] = "";
@@ -28,7 +29,7 @@ char *__ll_remove_spaces(char *str) {
 }
 
 int __ll_is_spec(char *str) {
-	char *specs[] = {"func", ";", NULL};
+	char *specs[] = {"func", ";", "?", NULL};
 
 	for (int i = 0; specs[i]; i++)
 		if (!strcmp(specs[i], str))
@@ -37,7 +38,6 @@ int __ll_is_spec(char *str) {
 }
 
 void ll_process_spec_operators(list *node) {
-	static int marked_index = -1;
 	token *tk = NULL;
 	char *gist = NULL;
 
@@ -51,7 +51,10 @@ void ll_process_spec_operators(list *node) {
 
 	// set marked index
 	if (__ll_is_spec(gist) > -1) {
-		marked_index = tk->index;
+		if (marked_index == -1)
+			marked_index = tk->index;
+		else
+			tk->eval_me = 0;
 
 		return ;
 	}
@@ -59,6 +62,7 @@ void ll_process_spec_operators(list *node) {
 	// check for marked index
 	if (marked_index < 0) {
 		tk->eval_me = 1;
+
 		return ;
 	}
 
@@ -115,7 +119,7 @@ void ll_exec(list *node) {
 
 int ll_is_std(char *name) {
 	char *names[] = {"print", "help", ";", "+", "-", "*", "/", "let", "func", \
-		"poly", NULL};
+		"poly", "?", ">", "<", ">=", "<=", "=", "!=", NULL};
 	int i = 0;
 
 	for (; names[i]; i++)
@@ -126,7 +130,9 @@ int ll_is_std(char *name) {
 
 void ll_run_std(int code, list *node) {
 	void (*std[])(list*) = {ll_cb_print, ll_cb_help, ll_cb_nil, ll_cb_sum, \
-		ll_cb_sub, ll_cb_mul, ll_cb_div, ll_cb_let, ll_cb_func, ll_cb_poly};
+		ll_cb_sub, ll_cb_mul, ll_cb_div, ll_cb_let, ll_cb_func, ll_cb_poly, \
+		ll_cb_if, ll_cb_big, ll_cb_small, ll_cb_big_eq, ll_cb_small_eq, \
+		ll_cb_eq, ll_cb_not_eq};
 
 	(*std[code])(node);
 }
@@ -211,12 +217,18 @@ void ll_cb_print(list *node) {
 			break;
 
 		arg_tk = (token*)lptr->data;
-		if (arg_tk->index == arg_col) {
-			if (__ll_is_esc(arg_tk->ret))
-				__ll_print_esc(arg_tk->ret);
-			else
-				printf("%s", arg_tk->ret);
+		if (arg_tk->index < arg_col)
+			break;
+		else if (arg_tk->index > arg_col) {
+			lptr = lptr->next;
+
+			continue;
 		}
+
+		if (__ll_is_esc(arg_tk->ret))
+			__ll_print_esc(arg_tk->ret);
+		else
+			printf("%s", arg_tk->ret);
 
 		lptr = lptr->next;
 	}
@@ -486,4 +498,162 @@ void ll_cb_poly(list *node) {
 	
 	// copy
 	strcpy(tk->ret, ret);
+}
+
+void __ll_exec_list(list *lptr, int level) {
+	marked_index = -1;
+
+	tl_crawl_list(lptr, ll_process_spec_operators);
+	tl_crawl_list_level(lptr, level, ll_exec);
+}
+
+void ll_cb_if(list *node) {
+	list *condition, *body, *dest_ptr, *lptr;
+	token *arg_tk, *tk, *cond_tk;
+	int arg_col = 0;
+
+	// get arg_col
+	tk = (token*)node->data;
+	if (!tk) {
+		fprintf(stderr, "forp: if: can\'t get head\n");
+
+		exit(0);
+	}
+	arg_col = tk->index + 1;
+
+	// init lists
+	condition = list_init_node(NULL);
+	body = list_init_node(NULL);
+
+	dest_ptr = condition;
+
+	// get condition and body
+	lptr = node->next;
+	while (lptr) {
+		arg_tk = (token*)lptr->data;
+		if (!arg_tk) {
+			lptr = lptr->next;
+
+			continue;
+		}
+
+		if (arg_tk->index == arg_col) {
+			fl_copy_tree_by_index(dest_ptr, lptr, arg_col);
+			dest_ptr = body;
+		}
+
+		lptr = lptr->next;
+	}
+
+	// eval condition
+	__ll_exec_list(condition, arg_col);
+
+	// check condition
+	cond_tk = (token*)condition->next->data;
+	if (!cond_tk) {
+		fprintf(stderr, "forp: if: can\'t get condition value\n");
+
+		exit(0);
+	}
+
+	if (strcmp(cond_tk->ret, "0"))
+		__ll_exec_list(body, arg_col);
+}
+
+double __ll_get_arg(list *lptr) {
+	token *tk;
+
+	tk = (token*)lptr->data;
+	if (!tk) {
+		fprintf(stderr, "forp: can\'t get argument\n");
+
+		exit(0);
+	}
+
+	return atof(tk->ret);
+}
+
+char *__ll_cb_cmp_big(double a1, double a2) {
+	return (a1 > a2) ? "1" : "0";
+}
+
+char *__ll_cb_cmp_small(double a1, double a2) {
+	return (a1 < a2) ? "1" : "0";
+}
+
+char *__ll_cb_cmp_big_eq(double a1, double a2) {
+	return (a1 >= a2) ? "1" : "0";
+}
+
+char *__ll_cb_cmp_small_eq(double a1, double a2) {
+	return (a1 <= a2) ? "1" : "0";
+}
+
+char *__ll_cb_cmp_eq(double a1, double a2) {
+	return (a1 == a2) ? "1" : "0";
+}
+
+char *__ll_cb_cmp_not_eq(double a1, double a2) {
+	return (a1 != a2) ? "1" : "0";
+}
+
+void __ll_cb_cmp(list *node, char *(*func)(double, double)) {
+	token *tk;
+	double arg1, arg2;
+	char *res;
+
+	// get argiments
+	arg1 = __ll_get_arg(node->next);
+	arg2 = __ll_get_arg(node->next->next);
+
+	// get res
+	res = (*func)(arg1, arg2);
+
+	// set ret
+	tk = node->data;
+	if (!tk) {
+		fprintf(stderr, "forp: can\'t get head\n");
+
+		exit(0);
+	}
+
+	// alloc ret
+	if (!tk->ret)
+		tk->ret = (char*)malloc(strlen(res) + 1);
+	else
+		tk->ret = (char*)realloc(tk->ret, strlen(res) + 1);
+
+	// check ret
+	if (!tk->ret) {
+		fprintf(stderr, "forp: can\'t allocate return field\n");
+
+		exit(0);
+	}
+
+	// copy
+	strcpy(tk->ret, res);
+}
+
+void ll_cb_big(list *node) {
+	__ll_cb_cmp(node, __ll_cb_cmp_big);
+}
+
+void ll_cb_small(list *node) {
+	__ll_cb_cmp(node, __ll_cb_cmp_small);
+}
+
+void ll_cb_big_eq(list *node) {
+	__ll_cb_cmp(node, __ll_cb_cmp_big_eq);
+}
+
+void ll_cb_small_eq(list *node) {
+	__ll_cb_cmp(node, __ll_cb_cmp_small_eq);
+}
+
+void ll_cb_eq(list *node) {
+	__ll_cb_cmp(node, __ll_cb_cmp_eq);
+}
+
+void ll_cb_not_eq(list *node) {
+	__ll_cb_cmp(node, __ll_cb_cmp_not_eq);
 }
