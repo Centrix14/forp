@@ -44,7 +44,7 @@ void tl_show(list *prog) {
 
 	tk = (token*)prog->data;
 	if (tk)
-		printf("[%d] %s\n", tk->index, tk->val);
+		printf("[%d] %s | %s (%d)\n", tk->index, tk->val, tk->ret, tk->eval_me);
 }
 
 void tl_crawl_list(list *prog, void (*func)(list*)) {
