@@ -26,6 +26,7 @@ void ll_cb_big_eq(list *node);
 void ll_cb_small_eq(list *node);
 void ll_cb_eq(list *node);
 void ll_cb_not_eq(list *node);
+void ll_cb_return(list *node);
 
 // for internal using only!
 void __sum(double *acc, double arg);
