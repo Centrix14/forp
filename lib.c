@@ -14,6 +14,7 @@ extern list *var_scope;
 extern list *func_scope;
 
 char *current_scope = "global";
+char *ret_val = NULL;
 int marked_index = -1;
 
 char *__ll_remove_spaces(char *str) {
@@ -53,8 +54,11 @@ void ll_process_spec_operators(list *node) {
 	if (__ll_is_spec(gist) > -1) {
 		if (marked_index == -1)
 			marked_index = tk->index;
-		else
+
+		if (tk->index > marked_index)
 			tk->eval_me = 0;
+		else
+			tk->eval_me = 1;
 
 		return ;
 	}
@@ -119,7 +123,7 @@ void ll_exec(list *node) {
 
 int ll_is_std(char *name) {
 	char *names[] = {"print", "help", ";", "+", "-", "*", "/", "let", "func", \
-		"poly", "?", ">", "<", ">=", "<=", "=", "!=", NULL};
+		"poly", "?", ">", "<", ">=", "<=", "=", "!=", "return", NULL};
 	int i = 0;
 
 	for (; names[i]; i++)
@@ -132,7 +136,7 @@ void ll_run_std(int code, list *node) {
 	void (*std[])(list*) = {ll_cb_print, ll_cb_help, ll_cb_nil, ll_cb_sum, \
 		ll_cb_sub, ll_cb_mul, ll_cb_div, ll_cb_let, ll_cb_func, ll_cb_poly, \
 		ll_cb_if, ll_cb_big, ll_cb_small, ll_cb_big_eq, ll_cb_small_eq, \
-		ll_cb_eq, ll_cb_not_eq};
+		ll_cb_eq, ll_cb_not_eq, ll_cb_return};
 
 	(*std[code])(node);
 }
@@ -495,7 +499,7 @@ void ll_cb_poly(list *node) {
 		tk->ret = (char*)malloc(strlen(ret) + 1);
 	else
 		tk->ret = (char*)realloc(tk->ret, strlen(ret) + 1);
-	
+
 	// copy
 	strcpy(tk->ret, ret);
 }
@@ -558,6 +562,14 @@ void ll_cb_if(list *node) {
 
 	if (strcmp(cond_tk->ret, "0"))
 		__ll_exec_list(body, arg_col);
+
+	// set ret
+	if (!tk->ret)
+		tk->ret = (char*)malloc(strlen(cond_tk->ret) + 1);
+	else
+		tk->ret = (char*)realloc(tk->ret, strlen(cond_tk->ret) + 1);
+
+	strcpy(tk->ret, cond_tk->ret);
 }
 
 double __ll_get_arg(list *lptr) {
@@ -656,4 +668,13 @@ void ll_cb_eq(list *node) {
 
 void ll_cb_not_eq(list *node) {
 	__ll_cb_cmp(node, __ll_cb_cmp_not_eq);
+}
+
+void ll_cb_return(list *node) {
+	token *tk = NULL;
+
+	if (node->next)
+		tk = (token*)node->next->data;
+	if (tk)
+		ret_val = tk->ret;
 }
