@@ -1,19 +1,48 @@
-let
-	a
-		5
-
-?
-	>
+func
+	||
 		a
+		b
+
+	poly
+		?
+			a
+
+			return
+				1
+
+		?
+			b
+
+			return
+				1
 		0
+
+func
+	fac
+		n
+
 	poly
 		print
-			/
-				a
-				2
+			n
 
-			.n
+		?
+			global:||
+				=
+					n
+					0
+				=
+					n
+					1
+			return
+				1
+		*
+			n
 
-		let
-			a
-				0
+			global:fac
+				-
+					n
+					1
+
+print
+	fac
+		2
