@@ -12,3 +12,10 @@ all:
 
 rel:
 	$(CC) $(OPT_FLAGS) $(CFLAGS) $(RESULT) $(FILES)
+
+test:
+	./$(RESULT) samples/hello-world.frp
+	./$(RESULT) samples/math.frp
+	./$(RESULT) samples/variables.frp
+	./$(RESULT) samples/functions.frp
+	./$(RESULT) samples/if.frp
