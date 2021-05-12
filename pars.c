@@ -14,6 +14,9 @@
 list *var_scope;
 list *func_scope;
 
+extern int marked_index;
+extern char *ret_val;
+
 int main(int argc, char *argv[]) {
 	list prog = {NULL, NULL, NULL};
 	FILE *stream = NULL;
@@ -98,6 +101,10 @@ void pl_exec(list *node) {
 	// free old tree
 	tl_crawl_list(node, tl_free_token);
 	tl_free_list(node);
+
+	// set some variables
+	marked_index = -1;
+	ret_val = NULL;
 }
 
 void pl_pars_line(list *tree, char *line) {
