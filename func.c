@@ -12,9 +12,11 @@
 #define FUNC_SCOPE_POSTFIX "-local-scope"
 
 static list *func_list;
+
 extern list *var_scope;
 extern char *current_scope;
 extern int marked_index;
+extern char *ret_val;
 
 void fl_func_list_init() {
 	func_list = list_init_node(NULL);
@@ -289,9 +291,9 @@ func *fl_func_get_with_syntax(list *target_scope, char *name) {
 
 void __fl_func_set_parameters(func *fptr, list *node) {
 	list *arg_node, *param_node;
-	token *arg_tk, *param_tk;
+	token *arg_tk, *param_tk, *tk;
 	char *parameter_scope, *parameter_scope_cpy;
-	int tag = 0, len = 0;
+	int tag = 0, len = 0, col = 0;
 
 	// get scope name
 	len = strlen(FUNC_SCOPE_POSTFIX);
@@ -308,6 +310,12 @@ void __fl_func_set_parameters(func *fptr, list *node) {
 	// get scope tag
 	tag = sl_scope_check(var_scope, parameter_scope_cpy);
 
+	// get col
+	tk = (token*)node->data;
+	if (!tk)
+		return ;
+	col = tk->index + 1;
+
 	// main loop
 	arg_node = node->next;
 	param_node = fptr->proto->next->next;
@@ -316,10 +324,13 @@ void __fl_func_set_parameters(func *fptr, list *node) {
 		param_tk = (token*)param_node->data;
 
 		//printf("[%d] %s = %s\n", tag, param_tk->val, arg_tk->ret);
-		vl_var_add(param_tk->val, arg_tk->ret, tag);
+		if (arg_tk->index == col) {
+			vl_var_add(param_tk->val, arg_tk->ret, tag);
+			
+			param_node = param_node->next;
+		}
 
 		arg_node = arg_node->next;
-		param_node = param_node->next;
 	}
 
 	// call new scope
@@ -328,6 +339,7 @@ void __fl_func_set_parameters(func *fptr, list *node) {
 
 void __fl_func_call(func *fptr) {
 	marked_index = -1;
+
 	tl_crawl_list(fptr->body, ll_process_spec_operators);
 	tl_crawl_list_level(fptr->body, 1, ll_exec);
 }
@@ -402,9 +414,14 @@ void __fl_func_set_return(func *fptr, list *node) {
 	}
 
 	// get ret
-	ret = fl_func_get_return_value(fptr);
+	if (ret_val)
+		ret = ret_val;
+	else
+		ret = fl_func_get_return_value(fptr);
+	ret_val = NULL;
+
 	if (!ret)
-		ret = "0";
+		ret = "x";
 
 	// set ret
 	if (!head_tk->ret)
