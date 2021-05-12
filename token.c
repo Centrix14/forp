@@ -5,6 +5,8 @@
 #include "tl2/list.h"
 #include "token.h"
 
+extern char *ret_val;
+
 void tl_add_token(list *prog, char *tok, int index) {
 	token *tk = NULL;
 	list *last = NULL;
@@ -146,6 +148,9 @@ void tl_crawl_list_level(list *prog, int level, void (*func)(list*)) {
 
 			continue;
 		}
+
+		if (ret_val)
+			return ;
 
 		if (tk->index == level) {
 			if (__tl_is_sub_tree(node)) {
