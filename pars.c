@@ -34,7 +34,7 @@ int main(int argc, char *argv[]) {
 	sl_scope_new(func_scope, "global");
 
 	// call global scope
-	sl_scope_call(var_scope, "global");
+	sl_scope_call(var_scope, 0);
 
 	if (argc >= 2) {
 		stream = fopen(argv[1], "r");
@@ -55,7 +55,7 @@ int main(int argc, char *argv[]) {
 	tl_free_list(&prog);
 
 	// revoke global scope
-	sl_scope_revoke(var_scope, "global");
+	sl_scope_revoke(var_scope, 0);
 
 	// free var_scope and variables
 	vl_var_list_free();
