@@ -8,7 +8,8 @@
 
 static list *var_list;
 extern list *var_scope;
-extern char *current_scope;
+extern int current_scope_tag;
+//extern char *current_scope;
 
 void vl_var_list_init() {
 	var_list = list_init_node(NULL);
@@ -40,12 +41,10 @@ void vl_var_add(char *name, char *value, int tag) {
 	list_set_data(last, new_var);
 }
 
-var *vl_var_get(char *name, char *scope_name) {
+var *vl_var_get(char *name, int tag) {
 	list *node = NULL;
 	var *vptr = NULL;
-	int tag = 0;
 
-	tag = sl_scope_get_tag(var_scope, scope_name);
 	node = var_list;
 	while (node) {
 		if (!node->data) {
@@ -65,10 +64,10 @@ var *vl_var_get(char *name, char *scope_name) {
 	return NULL;
 }
 
-char *vl_var_get_value(char *name, char *scope_name) {
+char *vl_var_get_value(char *name, int tag) {
 	var *vptr = NULL;
 
-	vptr = vl_var_get(name, scope_name);
+	vptr = vl_var_get(name, tag);
 	if (vptr)
 		return vptr->value;
 	return NULL;
@@ -121,18 +120,16 @@ void vl_var_list_show() {
 	}
 }
 
-int vl_var_get_exist(char *name, char *scope_name) {
-	if (sl_scope_get_tag(var_scope, scope_name) == -1)
-		return 0;
-	if (!vl_var_get(name, scope_name))
+int vl_var_get_exist(char *name, int tag) {
+	if (!vl_var_get(name, tag))
 		return 0;
 	return 1;
 }
 
-void vl_var_change_value(char *name, char *value, char *scope_name) {
+void vl_var_change_value(char *name, char *value, int tag) {
 	var *vptr = NULL;
 
-	vptr = vl_var_get(name, scope_name);
+	vptr = vl_var_get(name, tag);
 	if (vptr) {
 		vptr->value = (char*)realloc(vptr->value, strlen(value) + 1);
 		if (!vptr->value) {
@@ -148,6 +145,7 @@ void vl_var_change_value(char *name, char *value, char *scope_name) {
 var *vl_var_get_exist_with_syntax(char *name) {
 	char *scope_name, *variable_name;
 	char *cpy;
+	int tag;
 
 	cpy = (char*)malloc(strlen(name) + 1);
 	if (!cpy) {
@@ -162,14 +160,14 @@ var *vl_var_get_exist_with_syntax(char *name) {
 		variable_name = strtok(NULL, ":");
 	}
 	else {
-		scope_name = current_scope;
+		tag = current_scope_tag;
 		variable_name = cpy;
 	}
 
 	if (!variable_name || !scope_name)
 		return NULL;
 
-	return vl_var_get(variable_name, scope_name);
+	return vl_var_get(variable_name, tag);
 }
 
 void vl_var_free(list *node, var *vptr) {
