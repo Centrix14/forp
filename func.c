@@ -12,8 +12,8 @@
 #define FUNC_SCOPE_POSTFIX "-local-scope"
 
 static list *func_list;
-
-extern list *var_scope;
+extern list *var_scope, *func_scope;
+extern int current_scope_tag;
 extern char *current_scope;
 extern int marked_index;
 extern char *ret_val;
@@ -231,14 +231,10 @@ char *fl_func_get_name(func *fptr) {
 	return (char*)tk->val;
 }
 
-func *fl_func_get(list *target_scope, char *name, char *scope_name) {
+func *fl_func_get(list *target_scope, char *name, int tag) {
 	list *node;
 	func *fptr;
-	int tag = 0;
 	char *func_name;
-
-	// get tag
-	tag = sl_scope_get_tag(target_scope, scope_name);
 
 	// main loop
 	node = func_list;
@@ -266,6 +262,7 @@ func *fl_func_get(list *target_scope, char *name, char *scope_name) {
 func *fl_func_get_with_syntax(list *target_scope, char *name) {
 	char *scope_name, *func_name;
 	char *cpy;
+	int tag;
 
 	cpy = (char*)malloc(strlen(name) + 1);
 	if (!cpy) {
@@ -279,21 +276,23 @@ func *fl_func_get_with_syntax(list *target_scope, char *name) {
 	if (strchr(cpy, ':')) {
 		scope_name = strtok(cpy, ":");
 		func_name = strtok(NULL, ":");
+
+		tag = sl_scope_get_tag(var_scope, scope_name);
 	}
 	else {
-		scope_name = current_scope;
 		func_name = cpy;
+		tag = current_scope_tag;
 	}
 
 	// return func
-	return fl_func_get(target_scope, func_name, scope_name);
+	return fl_func_get(target_scope, func_name, tag);
 }
 
 void __fl_func_set_parameters(func *fptr, list *node) {
 	list *arg_node, *param_node;
 	token *arg_tk, *param_tk, *tk;
 	char *parameter_scope, *parameter_scope_cpy;
-	int tag = 0, len = 0, col = 0;
+	int tag = 0, len = 0, col = 0, chk_mode = 0;
 
 	// get scope name
 	len = strlen(FUNC_SCOPE_POSTFIX);
@@ -308,7 +307,10 @@ void __fl_func_set_parameters(func *fptr, list *node) {
 	strcat(parameter_scope_cpy, FUNC_SCOPE_POSTFIX);
 
 	// get scope tag
-	tag = sl_scope_check(var_scope, parameter_scope_cpy);
+	chk_mode = CHK_STD;
+	if (!strcmp(parameter_scope_cpy, current_scope))
+		chk_mode = CHK_REC;
+	tag = sl_scope_check(var_scope, parameter_scope_cpy, chk_mode);
 
 	// get col
 	tk = (token*)node->data;
@@ -333,8 +335,8 @@ void __fl_func_set_parameters(func *fptr, list *node) {
 		arg_node = arg_node->next;
 	}
 
-	// call new scope
-	sl_scope_call(var_scope, parameter_scope_cpy);
+	// call new scope & switch current_scope
+	sl_scope_call(var_scope, tag);
 }
 
 void __fl_func_call(func *fptr) {
@@ -364,36 +366,16 @@ void __fl_func_remove_params(func *fptr, int tag) {
 }
 
 void __fl_func_unset_parameters(func *fptr) {
-	char *scope_name = NULL, *func_name;
-	int len = 0, tag = 0;
-
-	// get function name
-	func_name = fl_func_get_name(fptr);
-	if (!func_name) {
-		fprintf(stderr, "forp: can\'t get function name\n");
-
-		exit(0);
-	}
-
-	// get scope name
-	len = strlen(FUNC_SCOPE_POSTFIX);
-	scope_name = (char*)malloc(strlen(func_name) + len + 1);
-	if (!scope_name) {
-		perror("forp");
-
-		exit(0);
-	}
-	strcpy(scope_name, func_name);
-	strcat(scope_name, FUNC_SCOPE_POSTFIX);
+	int tag = 0;
 
 	// get tag
-	tag = sl_scope_get_tag(var_scope, scope_name);
+	tag = current_scope_tag;
 
 	// remove params
 	__fl_func_remove_params(fptr, tag);
 
 	// revoke scope
-	sl_scope_revoke(var_scope, scope_name);
+	sl_scope_revoke(var_scope, tag);
 
 	// remove scope
 	sl_scope_remove(var_scope, tag);
