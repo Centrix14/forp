@@ -6,13 +6,10 @@ func
 	poly
 		?
 			a
-
 			return
 				1
-
 		?
 			b
-
 			return
 				1
 		0
@@ -23,8 +20,9 @@ func
 
 	poly
 		print
+			n = 
 			n
-
+			.n
 		?
 			global:||
 				=
@@ -37,7 +35,6 @@ func
 				1
 		*
 			n
-
 			global:fac
 				-
 					n
@@ -45,4 +42,5 @@ func
 
 print
 	fac
-		2
+		3
+	.n
