@@ -6,6 +6,7 @@
 #include "scope.h"
 
 static int call_level_count = 0;
+extern int current_scope_tag;
 extern char *current_scope;
 
 int sl_scope_get_tag(list *scope_list, char *name) {
@@ -31,10 +32,14 @@ int sl_scope_get_tag(list *scope_list, char *name) {
 	return -1;
 }
 
-int sl_scope_check(list *scope_list, char *name) {
-	int tag = 0;
+int sl_scope_check(list *scope_list, char *name, int is_check) {
+	int tag = -1;
 
-	tag = sl_scope_get_tag(scope_list, name);
+	// get tag
+	if (is_check)
+		tag = sl_scope_get_tag(scope_list, name);
+
+	// return tag
 	if (tag >= 0)
 		return tag;
 	else
@@ -157,7 +162,7 @@ void sl_scope_delete(list *node, scope *sc) {
 	free(node);
 }
 
-void sl_scope_call(list *node, char *name) {
+void sl_scope_call(list *node, int tag) {
 	list *lptr = NULL;
 	scope *sc = NULL;
 
@@ -170,16 +175,17 @@ void sl_scope_call(list *node, char *name) {
 			continue;
 		}
 
-		if (!strcmp(sc->name, name)) {
+		if (sc->tag == tag) {
 			sc->call_level = call_level_count++;
-			current_scope = sl_scope_get_by_call_level(node, call_level_count - 1);
+			current_scope_tag = sl_scope_get_by_call_level(node, call_level_count - 1);
+			current_scope = sl_scope_get_name(node, current_scope_tag);
 		}
 
 		lptr = lptr->next;
 	}
 }
 
-void sl_scope_revoke(list *node, char *name) {
+void sl_scope_revoke(list *node, int tag) {
 	list *lptr = NULL;
 	scope *sc = NULL;
 
@@ -192,18 +198,19 @@ void sl_scope_revoke(list *node, char *name) {
 			continue;
 		}
 
-		if (!strcmp(sc->name, name)) {
+		if (sc->tag == tag) {
 			sc->call_level = 0;
 			
 			call_level_count--;
-			current_scope = sl_scope_get_by_call_level(node, call_level_count - 1);
+			current_scope_tag = sl_scope_get_by_call_level(node, call_level_count - 1);
+			current_scope = sl_scope_get_name(node, current_scope_tag);
 		}
 
 		lptr = lptr->next;
 	}
 }
 
-char *sl_scope_get_by_call_level(list *node, int level) {
+int sl_scope_get_by_call_level(list *node, int level) {
 	list *lptr = NULL;
 	scope *sc = NULL;
 
@@ -217,10 +224,42 @@ char *sl_scope_get_by_call_level(list *node, int level) {
 		}
 
 		if (sc->call_level == level)
+			return sc->tag;
+
+		lptr = lptr->next;
+	}
+
+	return -1;
+}
+
+char *sl_scope_get_active(list *node) {
+	list *lptr = NULL;
+	scope *sc = NULL;
+
+	lptr = node;
+	while (lptr) {
+		if (!lptr->data) {
+			lptr = lptr->next;
+
+			continue;
+		}
+
+		sc = (scope*)lptr->data;
+		if (sc->call_level == (call_level_count - 1))
 			return sc->name;
 
 		lptr = lptr->next;
 	}
 
 	return NULL;
+}
+
+void sl_scope_show(list *node) {
+	scope *sc;
+
+	if (!node->data)
+		return ;
+	sc = (scope*)node->data;
+
+	printf("%s {%3d} [%3d]\n", sc->name, sc->tag, sc->call_level);
 }
