@@ -17,8 +17,8 @@ void fl_copy_tree_by_index(list *dest, list *src, int indx);
 void fl_func_show(list *lptr);
 void fl_func_show_all();
 
+func *fl_func_get(list *target_scope, char *name, int tag);
 char *fl_func_get_name(func *fptr);
-func *fl_func_get(list *target_scope, char *name, char *scope_name);
 func *fl_func_get_with_syntax(list *target_scope, char *name);
 char *fl_func_get_return_value(func *fptr);
 
