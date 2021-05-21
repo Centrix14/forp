@@ -15,6 +15,7 @@ extern list *func_scope;
 
 char *current_scope = "global";
 char *ret_val = NULL;
+int current_scope_tag = 0;
 int marked_index = -1;
 
 char *__ll_remove_spaces(char *str) {
@@ -113,7 +114,6 @@ void ll_exec(list *node) {
 	fptr = fl_func_get_with_syntax(func_scope, gist);
 	if (fptr) {
 		fl_func_call(fptr, node);
-		//printf("yey!\n");
 
 		return ;
 	}
@@ -159,17 +159,16 @@ void ll_make_ret(list *node) {
 }
 
 void ll_eval_var(list *node, var *vptr) {
-	char *variable_name, *variable_value, *scope_name;
+	char *variable_name, *variable_value;
 	int tag = 0;
 	token *tk;
 
 	// get scope and name
 	variable_name = vptr->name;
 	tag = vptr->tag;
-	scope_name = sl_scope_get_name(var_scope, tag);
 
 	// get value and tk
-	variable_value = vl_var_get_value(variable_name, scope_name);
+	variable_value = vl_var_get_value(variable_name, tag);
 	tk = (token*)node->data;
 	if (!tk) {
 		ll_make_ret(node);
@@ -363,7 +362,8 @@ void ll_cb_let(list *node) {
 			lptr = lptr->next;
 		}
 		else
-			scope_str = current_scope;
+			tag = current_scope_tag;
+		//scope_str = current_scope;
 	}
 
 	// main loop
@@ -389,13 +389,11 @@ void ll_cb_let(list *node) {
 			value = val_tk->ret;
 
 		// check for existance
-		exist = vl_var_get_exist(name, scope_str);
+		exist = vl_var_get_exist(name, current_scope_tag);
 		if (exist)
-			vl_var_change_value(name, value, scope_str);
-		else {
-			tag = sl_scope_check(var_scope, scope_str);
+			vl_var_change_value(name, value, current_scope_tag);
+		else
 			vl_var_add(name, value, tag);
-		}
 
 		lptr = lptr->next;
 	}
@@ -424,15 +422,15 @@ void ll_cb_func(list *node) {
 		return ;
 
 	if (*scope_tk->val == ':') {
+		// get scope
 		scope_name = &(scope_tk->val[1]);
-
 		lptr = lptr->next;
+		
+		// check scope
+		tag = sl_scope_check(func_scope, scope_name, CHK_STD);
 	}
 	else
-		scope_name = current_scope;
-
-	// check scope
-	tag = sl_scope_check(func_scope, scope_name);
+		tag = current_scope_tag;
 
 	// get proto
 	proto_tk = (token*)lptr->data;
